@@ -1,13 +1,11 @@
-const redis = require('redis');
-const hash = require("object-hash");
-const { json } = require('express');
+const redis = require('redis')
+const hash = require("object-hash")
 
 let redisClient = undefined
 
 const isRedisWorking = () => {
-    return redisClient?.isOpen()
+    return redisClient?.isReady
 }
-
 
 const requestToKey = (req) => {
     const requestDataToHash = {
@@ -19,7 +17,7 @@ const requestToKey = (req) => {
 }
 
 const writeData = async (key, data, options) => {
-    if(isRedisWorking()) {
+    if(true) {
         try{
             await redisClient.set(key, data, options)
         } catch(err) {
@@ -31,7 +29,7 @@ const writeData = async (key, data, options) => {
 const readData = async (key) => {
     let cachedValue = undefined
 
-    if(isRedisWorking()) {
+    if(true) {
         cachedValue = await redisClient.get(key)
         if(cachedValue) {
             return cachedValue
@@ -39,7 +37,7 @@ const readData = async (key) => {
     }
 }
 
-const redisCacheMiddleware = (options = { EX: 3600 }) => {
+const redisCacheMiddleware = (options = { PX: 3600 }) => {
     return async (req, res, next) => {
         if(isRedisWorking()) {
             const key = requestToKey(req)
@@ -54,11 +52,13 @@ const redisCacheMiddleware = (options = { EX: 3600 }) => {
             } else {
                 const originalSend = res.send
                 res.send = async (data) => {
+                    res.send = originalSend
+                    
                     if(res.statusCode.toString().startsWith('2')) {
                         writeData(key, data, options).then()
                     }
-
-                    return originalSend(data)
+                    
+                    return res.send(data)
                 }
             }
             next()
@@ -74,23 +74,24 @@ const initializeRedisClient = async () => {
     let redisURL = process.env.REDIS_URL
 
     if(redisURL) {
-        redisClient = redis.createClient({
-            url: redisURL,
-            // socket: {
-            //     host: process.env.REDIS_HOST,
-            //     port: process.env.REDIS_PORT
-            // }
-        }).on('error', err => {
-            console.log(err)
+        redisClient = redis.createClient({ 
+            url: redisURL 
         })
+        .on("connect", () => {
+            console.log("Connected to Redis successfully.")
+        })
+        .on("error", (err) => {
+            console.error(`Failed to create the Redis client with error:`)
+            console.error(err)
+        })
+
 
         try{
             await redisClient.connect()
-            console.log('Connected to Redis successfully.')
         } catch(err) {
             console.log(err)
         }
     }
 }
 
-module.exports = initializeRedisClient
+module.exports = { redisCacheMiddleware, initializeRedisClient } 

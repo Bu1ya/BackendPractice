@@ -1,8 +1,8 @@
-const createDbConnection = require('../db/createDbConnection.js');
+const { dbController } = require('./dbController.js')
 
-const db = createDbConnection()
+const db = dbController.getDbConnection()
 
-UserProfileController = {
+userProfileController = {
     insertUserProfile: (userProfile) => {
         return new Promise((resolve, reject) => {
             db.run(`
@@ -16,12 +16,12 @@ UserProfileController = {
                 userProfile.cashAmount
             ], (err) => {
                 if (err) {
-                    return reject(err);
+                    return reject(err)
                 }
-                resolve(userProfile.userId);
-            });
-        });
+                resolve(userProfile.userId)
+            })
+        })
     }
 }
 
-module.exports = UserProfileController;
+module.exports = userProfileController

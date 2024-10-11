@@ -1,15 +1,15 @@
-require('dotenv').config();
-const express = require('express');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const sanitizeInput = require('./src/middleware/sanitizeInput.js');
-const { REQUEST_LIMITS, DEVELOPMENT } = require('./src/config/constants.js');
-const createDbConnection = require('./src/db/createDbConnection.js');
-const closeDbConnection = require('./src/db/closeDbConnection.js');
-const initializeRedisClient  = require("./src/middleware/redis.js");
+require('dotenv').config()
+const express = require('express')
+const helmet = require('helmet')
+const { rateLimit } = require('express-rate-limit')
 
-const authRoutes = require('./src/routes/authRoutes.js');
-const usersRoutes = require('./src/routes/usersRoutes.js');
+const { sanitizeInput } = require('./src/middleware/sanitizeInput.js')
+const { initializeRedisClient }  = require("./src/middleware/redis.js")
+const { REQUEST_LIMITS } = require('./src/common/constants/constants.js')
+const { dbController } = require('./src/controllers/dbController.js')
+const authRoutes = require('./src/routes/authRoutes.js')
+const usersRoutes = require('./src/routes/usersRoutes.js')
+
 
 initializeExpressServer = async () => {
     app = express()
@@ -18,7 +18,7 @@ initializeExpressServer = async () => {
     app.use(express.json())
     app.use(sanitizeInput)
 
-    createDbConnection()
+    dbController.getDbConnection()
 
     const limiter = rateLimit({
         windowMs: REQUEST_LIMITS.RATE_LIMIT_DURATION_MS,
@@ -33,15 +33,15 @@ initializeExpressServer = async () => {
     app.use('/users', usersRoutes)
     app.use('/auth', authRoutes)
 
-    app.listen(DEVELOPMENT.PORT, () => {
-        console.log(`Server listening on port ${DEVELOPMENT.PORT}`)
-    });
+    app.listen(process.env.APP_PORT, () => {
+        console.log(`Server listening on port ${process.env.APP_PORT}`)
+    })
 }
 
 initializeExpressServer()
-  .then()
-  .catch((err) => console.error(err));
+    .then()
+    .catch((err) => console.error(err))
 
 process.on('SIGINT', () => {
-    closeDbConnection()
-});
+    dbController.closeDbConnection()
+})

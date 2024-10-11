@@ -1,6 +1,6 @@
 const createDbConnection = require('../db/createDbConnection.js');
 
-class UserProfileController {
+class userProfileController {
     constructor() {
         this.db = createDbConnection();
     }
@@ -26,4 +26,4 @@ class UserProfileController {
     };
 }
 
-module.exports = UserProfileController;
+module.exports = userProfileController;

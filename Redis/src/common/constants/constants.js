@@ -4,8 +4,5 @@ const REQUEST_LIMITS = {
     MESSAGE: "Too many requests, please try again later."
 }
 
-const DEVELOPMENT = {
-    PORT: 3000
-}
 
-module.exports = { REQUEST_LIMITS, DEVELOPMENT }
+module.exports = { REQUEST_LIMITS }

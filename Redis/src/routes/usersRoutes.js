@@ -1,26 +1,36 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const UserController = require('../controllers/UserController.js')
-const { body, param, query } = require('express-validator');
+
+const UserController = require('../controllers/userController.js')
 const checkValidationErrors  = require('../middleware/checkValidationErrors.js')
 const verifyToken  = require('../middleware/authMiddleware.js')
-const { validateUserId } = require('../middleware/requestDataValidation.js')
+const { requestUsersRoutesValidator: requestValidator } = require('../middleware/routesValidation.js')
+const { redisCacheMiddleware } = require('../middleware/redis.js')
 
 
 
-router.get('/', async (req, res) => {
+router.get('/', redisCacheMiddleware(
+    options = {
+      EX: 10,
+    }
+  ), async (req, res) => {
     try {
         const users = await UserController.getAllUsers()
         res.status(200).json(users)
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch users.' })
     }
-});
+})
 
 router.get('/:userId', [
-    validateUserId.Required.Param,
-    checkValidationErrors
+    requestValidator.validateGetUserByIdRequest,
+    checkValidationErrors,
+    redisCacheMiddleware(
+        options = {
+          EX: 10,
+        }
+      )
 ], async (req, res) => {
     try {
         const user = await UserController.getUserById(req.params.userId)
@@ -28,35 +38,13 @@ router.get('/:userId', [
             return res.status(404).json({ error: 'User not found.' })
         }
         res.status(200).json(user)
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch user.' })
-    }
-});
-
-router.post('/create',[
-    body('firstName').notEmpty().withMessage('First name is required').trim().escape(),
-    body('lastName').optional().trim().escape(),
-    body('age').optional().isInt().withMessage('Age must be an integer').toInt(),
-    body('cashAmount').notEmpty().withMessage('Cash amount is required').isFloat().withMessage('Cash amount must be a number').toFloat(),
-    checkValidationErrors,
-    verifyToken
-], async (req, res) =>{
-    const { firstName, lastName, age, cashAmount } = req.body
-
-    try {
-        await UserController.insertUser(firstName, lastName, age, cashAmount)
-        res.status(201).json({ message: 'User created.' })
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create user.' })
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch user.', err})
     }
 })
 
 router.patch('/updateProfile',[
-    query('userId').isInt().withMessage('User ID must be an integer').toInt(),
-    body('firstName').optional().trim().escape(),
-    body('lastName').optional().trim().escape(),
-    body('age').optional().isInt().withMessage('Age must be an integer').toInt(),
-    body('cashAmount').optional().isFloat().withMessage('Cash amount must be a number').toFloat(),
+    requestValidator.validateChangeUserProfileRequest,
     checkValidationErrors,
     verifyToken
 ], async (req, res) =>{
@@ -72,10 +60,8 @@ router.patch('/updateProfile',[
 })
 
 router.patch('/updateData',[
-    query('userId').isInt().withMessage('User ID must be an integer').toInt(),
-    body('email').optional().trim().escape(),
-    body('username').optional().trim().escape(),
-    body('password').optional().trim().escape().isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),    checkValidationErrors,
+    requestValidator.validateChangeUserDataRequest, 
+    checkValidationErrors,
     verifyToken
 ], async (req, res) =>{
     const { email, username, password } = req.body
@@ -90,7 +76,7 @@ router.patch('/updateData',[
 })
 
 router.delete('/delete', [
-    query('userId').isInt().withMessage('User ID must be an integer').toInt(),
+    requestValidator.validateDeleteUserRequest,
     checkValidationErrors,
     verifyToken
 ], async (req, res) =>{

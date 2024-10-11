@@ -2,10 +2,11 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const UserController = require('../controllers/UserController.js')
-const { body, param, query } = require('express-validator');
-const checkValidationErrors  = require('../middleware/checkValidationErrors.js')
-const { isEmail } = require('../utils/isEmail.js')
+
+const userProfileController = require('../controllers/userController.js')
+const checkValidationErrors = require('../middleware/checkValidationErrors.js')
+const { requestAuthRoutesValidator: requestValidator } = require('../middleware/routesValidation.js')
+const { isEmail } = require('../common/utils/isEmail.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -14,13 +15,7 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/register',[
-    body('email').isEmail().withMessage('Email is required').normalizeEmail(),
-    body('username').notEmpty().withMessage('Username is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-    body('firstName').notEmpty().withMessage('First name is required').trim().escape(),
-    body('lastName').optional().trim().escape(),
-    body('age').optional().isInt().withMessage('Age must be an integer').toInt(),
-    body('cashAmount').notEmpty().withMessage('Cash amount is required').isFloat().withMessage('Cash amount must be a number').toFloat(),
+    requestValidator.validateRegisterUserRequest,
     checkValidationErrors
 ], async (req, res) =>{
     const { email, username, password, firstName, lastName, age, cashAmount} = req.body
@@ -39,36 +34,34 @@ router.post('/register',[
         cashAmount
     }
     
-    UserController.insertUser(userData, userProfileData)
-    .then(userId => {
-        console.log('User ID:', userId);
+    userProfileController.insertUser(userData, userProfileData)
+    .then(() => {
         res.status(201).json({ message: 'User registered successfully.' })
     })
     .catch(err => {
         if (!res.headersSent) {
-            return res.status(500).json({ error: 'Registration failed.', err });
+            return res.status(500).json({ error: 'Registration failed.', err })
         }
-    });
+    })
 })
 
 router.post('/login', [
-    body('username').notEmpty().withMessage('Username is required'),
-    body('password').notEmpty().withMessage('Password is required').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    requestValidator.validateLoginUserRequest,
     checkValidationErrors
 ], async (req, res) => {
     const { username, password } = req.body
     
     try{
         const userData = isEmail(username) 
-        ? await UserController.getUserByEmail(username) 
-        : await UserController.getUserByUsername(username)
+        ? await userProfileController.getUserByEmail(username) 
+        : await userProfileController.getUserByUsername(username)
 
         if(!userData){
             return res.status(404).json({ error: 'User not found.' })
         }
 
         if(!await bcrypt.hash(password, 10) === userData.password){
-            return res.status(401).json({ error: 'Invalid credentials.' });
+            return res.status(401).json({ error: 'Invalid credentials.' })
         }
 
         const token = jwt.sign({ userId: userData.id, username: userData.username }, JWT_SECRET, {
@@ -77,9 +70,9 @@ router.post('/login', [
 
         res.status(200).json({ message: 'Login successful.', token })
     } catch(err){
-        res.status(500).json({ error: 'Login failed.' })
+        res.status(500).json({ error: 'Login failed.', err})
     }
 })
 
-module.exports = router;
+module.exports = router
 

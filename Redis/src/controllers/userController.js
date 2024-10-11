@@ -1,33 +1,31 @@
-const createDbConnection = require('../db/createDbConnection.js');
-const UserProfileController = require('./UserProfileController.js');
+const { dbController } = require('./dbController.js')
+const userProfileController = require('./userProfileController.js')
 
-const db =  createDbConnection()
+const db = dbController.getDbConnection()
 
-const UserController = {
+const userController = {
     insertUser: async (user, userProfile) => {
         return new Promise((resolve, reject) => {
             db.run(`INSERT INTO users (email, username, password) VALUES (?, ?, ?)`, 
                 [user.email, user.username, user.password], (err) => {
                     if (err) {
-                        console.log(err);
-                        return reject({ message: 'User registration failed.', error: err });
+                        console.log(err)
+                        return reject({ message: 'User registration failed.', error: err })
                     }
-                    
-                    console.log(user)
 
                     db.get('SELECT userId FROM users WHERE username = ?', 
                         [user.username], (err, row) => {
                             if (err) {
-                                return reject({ message: 'Failed to fetch user ID.', error: err });
+                                return reject({ message: 'Failed to fetch user ID.', error: err })
                             }
 
-                            userProfile.userId = row.userId;
+                            userProfile.userId = row.userId
 
-                            UserProfileController.insertUserProfile(userProfile)
+                            userProfileController.insertUserProfile(userProfile)
                                 .then(() => resolve(row.userId))
-                                .catch(err => reject({ message: 'Failed to insert user profile.', error: err }));
-                        });
-                });
+                                .catch(err => reject({ message: 'Failed to insert user profile.', error: err }))
+                        })
+                })
         })
     },
 
@@ -64,6 +62,22 @@ const UserController = {
         })
     },
 
+    getUserById: async (userId) => {
+        return new Promise((resolve, reject) => {
+            db.get('SELECT * FROM users WHERE userId = ?', [userId], (err, row) => {
+                if(err){
+                    return reject(err)
+                }
+                if(row){
+                    resolve(row)
+                }
+                else{
+                    resolve(null)
+                }
+            })
+        })
+    },
+
     getAllUsers: async () => {
         return new Promise((resolve, reject) => {
             db.all('SELECT * FROM users', (err, rows) => {
@@ -85,8 +99,8 @@ const UserController = {
                     return resolve(null)
                 }
                 resolve(true)
-            });
-        });
+            })
+        })
     },
 
     updateUserData: async (userId, email, username, password) => {
@@ -96,7 +110,7 @@ const UserController = {
                 ...(username && { username }),
                 ...(password && { age }),
                 userId
-            };
+            }
     
             if (Object.keys(updates).length === 0) {
                 return resolve(null)
@@ -107,7 +121,7 @@ const UserController = {
     
             for (const [key, value] of Object.entries(updates)) {
                 updateFields.push(`${key} = ?`)
-                args.push(value);
+                args.push(value)
             }
     
             const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE userId = ?`
@@ -121,8 +135,8 @@ const UserController = {
                     return resolve(null)
                 }
                 resolve(true)
-            });
-        });
+            })
+        })
     },
 
     updateUserProfile: async (userId, firstName, lastName, age, cashAmount) => {
@@ -133,7 +147,7 @@ const UserController = {
                 ...(age && { age }),
                 ...(cashAmount && { cashAmount }),
                 userId
-            };
+            }
     
             if (Object.keys(updates).length === 0) {
                 return resolve(null)
@@ -144,7 +158,7 @@ const UserController = {
     
             for (const [key, value] of Object.entries(updates)) {
                 updateFields.push(`${key} = ?`)
-                args.push(value);
+                args.push(value)
             }
     
             const sql = `UPDATE users_profile SET ${updateFields.join(', ')} WHERE userId = ?`
@@ -158,9 +172,9 @@ const UserController = {
                     return resolve(null)
                 }
                 resolve(true)
-            });
-        });
+            })
+        })
     }
 }
 
-module.exports = UserController;
+module.exports = userController
