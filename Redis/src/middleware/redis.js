@@ -17,7 +17,7 @@ const requestToKey = (req) => {
 }
 
 const writeData = async (key, data, options) => {
-    if(true) {
+    if(isRedisWorking()) {
         try{
             await redisClient.set(key, data, options)
         } catch(err) {
@@ -29,7 +29,7 @@ const writeData = async (key, data, options) => {
 const readData = async (key) => {
     let cachedValue = undefined
 
-    if(true) {
+    if(isRedisWorking()) {
         cachedValue = await redisClient.get(key)
         if(cachedValue) {
             return cachedValue
