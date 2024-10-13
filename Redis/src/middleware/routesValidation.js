@@ -1,47 +1,48 @@
 const { param, query, body } = require('express-validator')
-const { requestValidationVariables: validator } = require('../common/constants/requestValidationVariables.js')
+const { genericConditions, uniqueConditions } = require('../common/constants/fieldValidationConditions.js')
+const { fieldValidation } = require('../common/utils/fieldValidation.js')
+
 
 const validateGetUserByIdRequest = [
-    validator.userIdValidation(param, true)
+    fieldValidation(param, 'userId', true, genericConditions('userId').int)
 ]
 
 const validateChangeUserProfileRequest = [
-    validator.userIdValidation(query, true),
-    validator.usernameValidation(body),
-    validator.firstNameValidation(body),
-    validator.lastNameValidation(body),
-    validator.ageValidation(body),
-    validator.cashAmountValidation(body),
-    validator.emailValidation(body),
-    validator.passwordValidation(body),
+    fieldValidation(query, 'userId', true, genericConditions('userId').int),
+    fieldValidation(body, 'firstName', false, genericConditions('firstName').string),
+    fieldValidation(body, 'lastName', false, genericConditions('lastName').string),
+    fieldValidation(body, 'age', false, genericConditions('age').int),
+    fieldValidation(body, 'cashAmount', false, genericConditions('cashAmount').float)
 ]
 
 const validateChangeUserDataRequest = [
-    validator.userIdValidation(query, true),
-    validator.emailValidation(body),
-    validator.usernameValidation(body),
-    validator.passwordValidation(body)
+    fieldValidation(query, 'userId', true, genericConditions('userId').int),
+    fieldValidation(body, 'username', false, genericConditions('username').string),
+    fieldValidation(body, 'email', false, genericConditions('email').string.concat(uniqueConditions.email)),
+    fieldValidation(body, 'password', false, genericConditions('password').string.concat(uniqueConditions.password))
 ]
 
+
 const validateDeleteUserRequest = [
-    validator.userIdValidation(query, true)
+    fieldValidation(query, 'userId', true, genericConditions('userId').int)
 ]
 
 
 const validateRegisterUserRequest = [
-    validator.usernameValidation(body, true),
-    validator.emailValidation(body, true),
-    validator.passwordValidation(body, true),
-    validator.firstNameValidation(body, true),
-    validator.lastNameValidation(body),
-    validator.ageValidation(body),
-    validator.cashAmountValidation(body, true)
+    fieldValidation(body, 'username', true, genericConditions('username').string),
+    fieldValidation(body, 'email', true, genericConditions('email').string.concat(uniqueConditions.email)),
+    fieldValidation(body, 'password', true, genericConditions('password').string.concat(uniqueConditions.password)),
+    fieldValidation(body, 'firstName', true, genericConditions('firstName').string),
+    fieldValidation(body, 'lastName', false, genericConditions('lastName').string),
+    fieldValidation(body, 'age', false, genericConditions('age').int),
+    fieldValidation(body, 'cashAmount', true, genericConditions('cashAmount').float)
 ]
 
 const validateLoginUserRequest = [
-    validator.usernameValidation(body, true),
-    validator.passwordValidation(body, true)
+    fieldValidation(body, 'username', true, genericConditions('username').string),
+    fieldValidation(body, 'password', true, genericConditions('password').string.concat(uniqueConditions.password))
 ]
+
 
 module.exports = {
     requestUsersRoutesValidator: {
