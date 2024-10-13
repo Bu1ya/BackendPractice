@@ -1,45 +1,46 @@
-const { requestValidationVariables: validate } = require('../common/constants/requestValidationVariables.js')
+const { param, query, body } = require('express-validator')
+const { requestValidationVariables: validator } = require('../common/constants/requestValidationVariables.js')
 
 const validateGetUserByIdRequest = [
-    validate.UserId.Required.Param
+    validator.userIdValidation(param, true)
 ]
 
 const validateChangeUserProfileRequest = [
-    validate.UserId.Required.Param,
-    validate.Username.Optional.Body,
-    validate.FirstName.Optional.Body,
-    validate.LastName.Optional.Body,
-    validate.Age.Optional.Body,
-    validate.CashAmount.Optional.Body,
-    validate.Email.Optional.Body,
-    validate.Password.Optional.Body
+    validator.userIdValidation(query, true),
+    validator.usernameValidation(body),
+    validator.firstNameValidation(body),
+    validator.lastNameValidation(body),
+    validator.ageValidation(body),
+    validator.cashAmountValidation(body),
+    validator.emailValidation(body),
+    validator.passwordValidation(body),
 ]
 
 const validateChangeUserDataRequest = [
-    validate.UserId.Required.Param,
-    validate.Email.Optional.Body,
-    validate.Username.Optional.Body,
-    validate.Password.Optional.Body
+    validator.userIdValidation(query, true),
+    validator.emailValidation(body),
+    validator.usernameValidation(body),
+    validator.passwordValidation(body)
 ]
 
 const validateDeleteUserRequest = [
-    validate.UserId.Required.Query
+    validator.userIdValidation(query, true)
 ]
 
 
 const validateRegisterUserRequest = [
-    validate.Username.Required.Body,
-    validate.Email.Required.Body,
-    validate.Password.Required.Body,
-    validate.FirstName.Required.Body,
-    validate.LastName.Optional.Body,
-    validate.Age.Optional.Body,
-    validate.CashAmount.Required.Body
+    validator.usernameValidation(body, true),
+    validator.emailValidation(body, true),
+    validator.passwordValidation(body, true),
+    validator.firstNameValidation(body, true),
+    validator.lastNameValidation(body),
+    validator.ageValidation(body),
+    validator.cashAmountValidation(body, true)
 ]
 
 const validateLoginUserRequest = [
-    validate.Username.Required.Body,
-    validate.Password.Required.Body
+    validator.usernameValidation(body, true),
+    validator.passwordValidation(body, true)
 ]
 
 module.exports = {

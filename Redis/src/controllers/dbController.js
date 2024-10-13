@@ -1,7 +1,7 @@
 require('dotenv').config()
 const sqlite3 = require('sqlite3').verbose()
 
-let dbInstance = undefined
+let dbInstance
 
 const initDatabase = () => {
     return new Promise((resolve, reject) => {

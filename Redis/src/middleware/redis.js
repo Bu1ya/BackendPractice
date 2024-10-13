@@ -1,11 +1,7 @@
 const redis = require('redis')
 const hash = require("object-hash")
 
-let redisClient = undefined
-
-const isRedisWorking = () => {
-    return redisClient?.isReady
-}
+let redisClient
 
 const requestToKey = (req) => {
     const requestDataToHash = {
@@ -17,7 +13,7 @@ const requestToKey = (req) => {
 }
 
 const writeData = async (key, data, options) => {
-    if(isRedisWorking()) {
+    if(redisClient?.isReady) {
         try{
             await redisClient.set(key, data, options)
         } catch(err) {
@@ -27,9 +23,9 @@ const writeData = async (key, data, options) => {
 }
 
 const readData = async (key) => {
-    let cachedValue = undefined
+    let cachedValue
 
-    if(isRedisWorking()) {
+    if(redisClient?.isReady) {
         cachedValue = await redisClient.get(key)
         if(cachedValue) {
             return cachedValue
@@ -39,7 +35,7 @@ const readData = async (key) => {
 
 const redisCacheMiddleware = (options = { PX: 3600 }) => {
     return async (req, res, next) => {
-        if(isRedisWorking()) {
+        if(redisClient?.isReady) {
             const key = requestToKey(req)
             const cachedValue = await readData(key)
 
@@ -70,27 +66,23 @@ const redisCacheMiddleware = (options = { PX: 3600 }) => {
 }
 
 
-const initializeRedisClient = async () => {
-    let redisURL = process.env.REDIS_URL
-
-    if(redisURL) {
-        redisClient = redis.createClient({ 
-            url: redisURL 
-        })
-        .on("connect", () => {
-            console.log("Connected to Redis successfully.")
-        })
-        .on("error", (err) => {
-            console.error(`Failed to create the Redis client with error:`)
-            console.error(err)
-        })
+const initializeRedisClient = async () => {    
+    redisClient = redis.createClient({ 
+        url: process.env.REDIS_URL 
+    })
+    .on("connect", () => {
+        console.log("Connected to Redis successfully.")
+    })
+    .on("error", (err) => {
+        console.error(`Failed to create the Redis client with error:`)
+        console.error(err)
+    })
 
 
-        try{
-            await redisClient.connect()
-        } catch(err) {
-            console.log(err)
-        }
+    try{
+        await redisClient.connect()
+    } catch(err) {
+        console.log(err)
     }
 }
 
