@@ -9,17 +9,17 @@ const validateGetUserByIdRequest = [
 
 const validateChangeUserProfileRequest = [
     fieldValidation(query, 'userId', true, genericConditions('userId').int),
-    fieldValidation(body, 'firstName', false, genericConditions('firstName').string),
-    fieldValidation(body, 'lastName', false, genericConditions('lastName').string),
+    fieldValidation(body, 'firstName', false, []),
+    fieldValidation(body, 'lastName', false, []),
     fieldValidation(body, 'age', false, genericConditions('age').int),
     fieldValidation(body, 'cashAmount', false, genericConditions('cashAmount').float)
 ]
 
 const validateChangeUserDataRequest = [
     fieldValidation(query, 'userId', true, genericConditions('userId').int),
-    fieldValidation(body, 'username', false, genericConditions('username').string),
-    fieldValidation(body, 'email', false, genericConditions('email').string.concat(uniqueConditions.email)),
-    fieldValidation(body, 'password', false, genericConditions('password').string.concat(uniqueConditions.password))
+    fieldValidation(body, 'username', false, []),
+    fieldValidation(body, 'email', false, uniqueConditions.email),
+    fieldValidation(body, 'password', false, uniqueConditions.password)
 ]
 
 
@@ -29,18 +29,18 @@ const validateDeleteUserRequest = [
 
 
 const validateRegisterUserRequest = [
-    fieldValidation(body, 'username', true, genericConditions('username').string),
-    fieldValidation(body, 'email', true, genericConditions('email').string.concat(uniqueConditions.email)),
-    fieldValidation(body, 'password', true, genericConditions('password').string.concat(uniqueConditions.password)),
-    fieldValidation(body, 'firstName', true, genericConditions('firstName').string),
-    fieldValidation(body, 'lastName', false, genericConditions('lastName').string),
+    fieldValidation(body, 'username', true, []),
+    fieldValidation(body, 'email', true, uniqueConditions.email),
+    fieldValidation(body, 'password', true, uniqueConditions.password),
+    fieldValidation(body, 'firstName', true, []),
+    fieldValidation(body, 'lastName', false, []),
     fieldValidation(body, 'age', false, genericConditions('age').int),
     fieldValidation(body, 'cashAmount', true, genericConditions('cashAmount').float)
 ]
 
 const validateLoginUserRequest = [
-    fieldValidation(body, 'username', true, genericConditions('username').string),
-    fieldValidation(body, 'password', true, genericConditions('password').string.concat(uniqueConditions.password))
+    fieldValidation(body, 'username', true, uniqueConditions.login),
+    fieldValidation(body, 'password', true, uniqueConditions.password)
 ]
 
 

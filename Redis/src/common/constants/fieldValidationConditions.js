@@ -1,10 +1,8 @@
-const genericConditions = (field) => ({
+const { body } = require("express-validator");
+const { isEmail } = require("../utils/isEmail");
+const { isAlphanumeric } = require("../utils/isAlphanumeric");
 
-    numeric: [
-        { method: 'toNumeric', args: [] },
-        { method: 'isNumeric', args: [] },
-        { method: 'withMessage', args: [`${field} must be a numeric`]}
-    ],
+const genericConditions = (field) => ({
     
     int: [
         { method: 'toInt', args: [] },
@@ -16,12 +14,6 @@ const genericConditions = (field) => ({
         { method: 'toFloat', args: [] },
         { method: 'isFloat', args: [] },
         { method: 'withMessage', args: [`${field} must be a float`]}
-    ],
-    
-    string: [
-        { method: 'toString', args: [] },
-        { method: 'isString', args: [] },
-        { method: 'withMessage', args: [`${field} must be a string`]}
     ]
 })
 
@@ -36,6 +28,16 @@ const uniqueConditions = {
         { method: 'normalizeEmail', args: [] },
         { method: 'isEmail', args: [] },
         { method: 'withMessage', args: ['email is not valid']}
+    ],
+
+    login: [
+        { method: 'custom', args: [(value, { req }) => {
+            if(!isAlphanumeric(value) && !isEmail(value)) {
+                throw new Error('invalid input (input must be either a valid email or alphanumeric)');
+            }
+            return true
+        }] }
+
     ]
 }
 
