@@ -1,6 +1,6 @@
 const { body, param, query } = require('express-validator')
 
-const fieldValidation  = (requestDataLocation, field, required, conditions) => {
+const fieldValidation  = (requestDataLocation, field, required, conditions = []) => {
     let validator = requestDataLocation(field)
     
     validator = validator.trim().escape()

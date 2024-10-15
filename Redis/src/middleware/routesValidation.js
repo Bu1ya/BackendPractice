@@ -9,15 +9,15 @@ const validateGetUserByIdRequest = [
 
 const validateChangeUserProfileRequest = [
     fieldValidation(query, 'userId', true, genericConditions('userId').int),
-    fieldValidation(body, 'firstName', false, []),
-    fieldValidation(body, 'lastName', false, []),
+    fieldValidation(body, 'firstName', false),
+    fieldValidation(body, 'lastName', false),
     fieldValidation(body, 'age', false, genericConditions('age').int),
     fieldValidation(body, 'cashAmount', false, genericConditions('cashAmount').float)
 ]
 
 const validateChangeUserDataRequest = [
     fieldValidation(query, 'userId', true, genericConditions('userId').int),
-    fieldValidation(body, 'username', false, []),
+    fieldValidation(body, 'username', false),
     fieldValidation(body, 'email', false, uniqueConditions.email),
     fieldValidation(body, 'password', false, uniqueConditions.password)
 ]
@@ -29,11 +29,11 @@ const validateDeleteUserRequest = [
 
 
 const validateRegisterUserRequest = [
-    fieldValidation(body, 'username', true, []),
+    fieldValidation(body, 'username', true),
     fieldValidation(body, 'email', true, uniqueConditions.email),
     fieldValidation(body, 'password', true, uniqueConditions.password),
-    fieldValidation(body, 'firstName', true, []),
-    fieldValidation(body, 'lastName', false, []),
+    fieldValidation(body, 'firstName', true),
+    fieldValidation(body, 'lastName', false),
     fieldValidation(body, 'age', false, genericConditions('age').int),
     fieldValidation(body, 'cashAmount', true, genericConditions('cashAmount').float)
 ]
