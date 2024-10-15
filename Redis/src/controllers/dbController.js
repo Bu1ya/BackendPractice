@@ -5,6 +5,7 @@ let dbInstance
 
 const initDatabase = () => {
     return new Promise((resolve, reject) => {
+        console.log(process.env.DB_PATH)
         let db = new sqlite3.Database(process.env.DB_PATH, (err) => {
             if (err) {
                 console.error(`Error connecting to the database: ${err.message}`)

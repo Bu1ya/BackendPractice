@@ -40,6 +40,7 @@ const redisCacheMiddleware = (options = { PX: 3600 }) => {
             const cachedValue = await readData(key)
 
             if(cachedValue) {
+                res.set('X-Data-Cached', true)
                 try{
                     return res.send(JSON.parse(cachedValue))
                 } catch {
@@ -49,10 +50,12 @@ const redisCacheMiddleware = (options = { PX: 3600 }) => {
                 const originalSend = res.send
                 res.send = async (data) => {
                     res.send = originalSend
-                    
+
                     if(res.statusCode.toString().startsWith('2')) {
                         writeData(key, data, options).then()
                     }
+
+                    res.set('X-Data-Cached', false)
                     
                     return res.send(data)
                 }
