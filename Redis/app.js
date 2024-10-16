@@ -11,8 +11,9 @@ const { REQUEST_LIMITS } = require('./src/common/constants/constants.js')
 const { dbController } = require('./src/controllers/dbController.js')
 const authRoutes = require('./src/routes/authRoutes.js')
 const usersRoutes = require('./src/routes/usersRoutes.js')
-const messageHandler = require('./src/handlers/messageHandler.js')
-const disconnectHandler = require('./src/handlers/disconnectHandler.js')
+const messageHandler = require('./src/socketHandlers/messageHandler.js')
+const disconnectHandler = require('./src/socketHandlers/disconnectHandler.js');
+const socketAuthMiddleware = require('./src/middleware/socketAuthMiddleware.js');
 
 initializeExpressServer = async () => {
     const app = express()
@@ -41,12 +42,17 @@ initializeExpressServer = async () => {
     const io = new Server(server, {
         cors: {
             origin: "*",
-            methods: ["GET", "POST"]
+            methods: ["GET", "POST"],
+            credentials: false,
         }
     })
 
+    app.locals.io = io;
+
+    io.use(socketAuthMiddleware)
+
     io.on('connection', (socket) => {
-        console.log('A user connected:', socket.id);
+        console.log('A user connected:', socket.handshake.address);
         
         messageHandler(socket)
         disconnectHandler(socket)

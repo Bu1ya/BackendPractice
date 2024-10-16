@@ -18,6 +18,7 @@ router.post('/register',[
     requestValidator.validateRegisterUserRequest,
     checkValidationErrors
 ], async (req, res) =>{
+    const io = req.app.locals.io;
     const { email, username, password, firstName, lastName, age, cashAmount} = req.body
     const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -36,6 +37,8 @@ router.post('/register',[
     
     userProfileController.insertUser(userData, userProfileData)
     .then(() => {
+        io.emit('route-info', { route: req.originalUrl, body: req.body });
+        
         res.status(201).json({ message: 'User registered successfully.' })
     })
     .catch(err => {
@@ -52,6 +55,7 @@ router.post('/login', [
     const { username, password } = req.body
     
     try{
+        const io = req.app.locals.io;
         const userData = isEmail(username) 
         ? await userProfileController.getUserByEmail(username) 
         : await userProfileController.getUserByUsername(username)
@@ -67,8 +71,11 @@ router.post('/login', [
         const token = jwt.sign({ userId: userData.id, username: userData.username }, JWT_SECRET, {
             expiresIn: '1h'
         })
-
+        
+        io.emit('route-info', { route: req.originalUrl, body: req.body });
+        
         res.status(200).json({ message: 'Login successful.', token })
+
     } catch(err){
         res.status(500).json({ error: 'Login failed.', err})
     }

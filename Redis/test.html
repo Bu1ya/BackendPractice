@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Client</title>
+</head>
+<body>
+    <h1>Socket.IO Client Test</h1>
+    <button id="sendMessage">Send Message to Server</button>
+
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+
+        socket.on('connect', () => {
+            console.log('Connected')
+        })
+
+        // Listening for a message from the server
+        socket.on('message', (data) => {
+            console.log('Message from server:', data.text);
+        });
+
+        // Listening for broadcast messages
+        socket.on('broadcastMessage', (data) => {
+            console.log('Broadcast message:', data);
+        });
+
+        // Sending a message to the server when the button is clicked
+        document.getElementById('sendMessage').addEventListener('click', () => {
+            const message = 'Hello from the client!';
+            socket.emit('message', { text: message });
+            console.log('Message sent to the server:', message);
+        });
+
+        // Receiving a response from the server
+        socket.on('responseFromServer', (data) => {
+            console.log('Response from server:', data);
+        });
+    </script>
+</body>
+</html>
+
+
+

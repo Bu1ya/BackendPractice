@@ -3,22 +3,16 @@ const { dbController } = require('./dbController.js')
 const db = dbController.getDbConnection()
 
 userProfileController = {
-    insertUserProfile: (userProfile) => {
+    insertUserProfile: ({ userId, firstName, lastName, age, cashAmount }) => {
         return new Promise((resolve, reject) => {
             db.run(`
                 INSERT INTO users_profile (userId, firstName, lastName, age, cashAmount) 
                 VALUES (?, ?, ?, ?, ?)
-            `, [
-                userProfile.userId,
-                userProfile.firstName,
-                userProfile.lastName,
-                userProfile.age,
-                userProfile.cashAmount
-            ], (err) => {
+            `, [userId, firstName, lastName, age, cashAmount], (err) => {
                 if (err) {
                     return reject(err)
                 }
-                resolve(userProfile.userId)
+                resolve(userId)
             })
         })
     }

@@ -4,17 +4,17 @@ const userProfileController = require('./userProfileController.js')
 const db = dbController.getDbConnection()
 
 const userController = {
-    insertUser: async (user, userProfile) => {
+    insertUser: async ({ email, username, password }, userProfile) => {
         return new Promise((resolve, reject) => {
             db.run(`INSERT INTO users (email, username, password) VALUES (?, ?, ?)`, 
-                [user.email, user.username, user.password], (err) => {
+                [email, username, password], (err) => {
                     if (err) {
                         console.log(err)
                         return reject({ message: 'User registration failed.', error: err })
                     }
 
                     db.get('SELECT userId FROM users WHERE username = ?', 
-                        [user.username], (err, row) => {
+                        [username], (err, row) => {
                             if (err) {
                                 return reject({ message: 'Failed to fetch user ID.', error: err })
                             }
@@ -103,7 +103,7 @@ const userController = {
         })
     },
 
-    updateUserData: async (userId, email, username, password) => {
+    updateUserData: async ({ userId, email, username, password }) => {
         return new Promise((resolve, reject) => {
             const updates = {
                 ...(email && { email }),
@@ -139,7 +139,7 @@ const userController = {
         })
     },
 
-    updateUserProfile: async (userId, firstName, lastName, age, cashAmount) => {
+    updateUserProfile: async ({ userId, firstName, lastName, age, cashAmount }) => {
         return new Promise((resolve, reject) => {
             const updates = {
                 ...(firstName && { firstName }),
