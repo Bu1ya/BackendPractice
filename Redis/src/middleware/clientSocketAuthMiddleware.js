@@ -1,7 +1,7 @@
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
-const socketAuthMiddleware = (socket, next) => {
+const clientSocketAuthMiddleware = (socket, next) => {
     const token = socket.handshake.query.token
 
     if (!token) {
@@ -18,4 +18,4 @@ const socketAuthMiddleware = (socket, next) => {
     });
 };
 
-module.exports = socketAuthMiddleware;
+module.exports = clientSocketAuthMiddleware;

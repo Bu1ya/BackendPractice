@@ -12,7 +12,7 @@ const userController = {
                         console.log(err)
                         return reject({ message: 'User registration failed.', error: err })
                     }
-
+                    
                     db.get('SELECT userId FROM users WHERE username = ?', 
                         [username], (err, row) => {
                             if (err) {

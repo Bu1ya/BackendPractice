@@ -1,6 +1,6 @@
 const sanitizeHtml = require('sanitize-html')
 
-const sanitizeInput = (req, res, next) => {
+const sanitizeInputMiddleware = (req, res, next) => {
     if (req.body) {
         for (let key in req.body) {
             if (typeof req.body[key] === 'string') {
@@ -11,5 +11,5 @@ const sanitizeInput = (req, res, next) => {
     next()
 }
 
-module.exports = { sanitizeInput }
+module.exports = { sanitizeInputMiddleware }
 
