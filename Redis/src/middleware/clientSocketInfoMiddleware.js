@@ -1,4 +1,4 @@
-const { clientSocket } = require("../sockets/clientSocket")
+const { clientSocket } = require("../socket/clientSocket")
 
 const clientSocketInfoMiddleware = (req, res, next) => {
     if(clientSocket.adminRights){

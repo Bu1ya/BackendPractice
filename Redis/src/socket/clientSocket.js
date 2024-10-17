@@ -38,8 +38,4 @@ const clientSocket = {
     }
 }
 
-const setAdmin = () =>{
-    clientSocket.adminRights = true
-}
-
-module.exports = { clientSocket, setAdmin }
+module.exports = { clientSocket }

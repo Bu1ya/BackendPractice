@@ -1,6 +1,6 @@
 const http = require('http');
 const { app } = require('./src/app/app');
-const { clientSocket } = require('./src/sockets/clientSocket');
+const { clientSocket } = require('./src/socket/clientSocket');
 const { initializeRedisClient } = require('./src/redis/redisClient');
 const { dbController } = require('./src/controllers/dbController');
 
