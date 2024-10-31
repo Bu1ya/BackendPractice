@@ -2,12 +2,13 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
 
-const UserController = require('../controllers/userController.js')
+const userController = require('../controllers/userController.js')
 const checkValidationErrorsMiddleware  = require('../middleware/checkValidationErrorsMiddleware.js')
 const authMiddleware  = require('../middleware/authMiddleware.js')
 const { requestUsersRoutesValidator: requestValidator } = require('../middleware/routesValidationMiddleware.js')
 const { redisCacheMiddleware } = require('../middleware/redisCacheMiddleware.js')
 const { clientSocketInfoMiddleware } = require('../middleware/clientSocketInfoMiddleware.js')
+const { logger } = require('../common/utils/logger.js')
 
 
 router.get('/', [
@@ -18,12 +19,12 @@ router.get('/', [
     clientSocketInfoMiddleware
 ], async (req, res) => {
     try {
-        const users = await UserController.getAllUsers()
+        const users = await userController.getAllUsers()
 
         res.status(200).json(users)
 
     } catch (err) {
-        console.log(err)
+        logger.error(err)
         res.status(500).json({ error: 'Failed to fetch users.', err })
     }
 })
@@ -38,7 +39,7 @@ router.get('/:userId', [
     clientSocketInfoMiddleware
 ], async (req, res) => {
     try {
-        const user = await UserController.getUserById(req.params.userId)
+        const user = await userController.getUserById(req.params.userId)
 
         if (!user) {
             return res.status(404).json({ error: 'User not found.' })
@@ -47,6 +48,7 @@ router.get('/:userId', [
         res.status(200).json(user)
 
     } catch (err) {
+        logger.error(err)
         res.status(500).json({ error: 'Failed to fetch user.', err})
     }
 })
@@ -68,11 +70,12 @@ router.patch('/updateProfile',[
     }
 
     try {
-        await UserController.updateUserProfile(userProfile)
+        await userController.updateUserProfile(userProfile)
         
         res.status(200).json({ message: 'User info updated.' })
 
-    } catch (error) {
+    } catch (err) {
+        logger.error(err)
         res.status(500).json({ error: 'Failed to update user.' })
     }
 })
@@ -94,11 +97,12 @@ router.patch('/updateData',[
     }
 
     try {    
-        await UserController.updateUserData(userData)
+        await userController.updateUserData(userData)
         
         res.status(200).json({ message: 'User info updated.' })
 
-    } catch (error) {
+    } catch (err) {
+        logger.error(err)
         res.status(500).json({ error: 'Failed to update user.' })
     }
 })
@@ -110,11 +114,12 @@ router.delete('/delete', [
     clientSocketInfoMiddleware
 ], async (req, res) =>{
     try {
-        await UserController.deleteUserById(req.query.userId)
+        await userController.deleteUserById(req.query.userId)
         
         res.status(204).json({ message: 'User deleted.' })
 
     } catch (err) {
+        logger.error(err)
         res.status(500).json({ error: 'Failed to delete user.', err })
     }
 })

@@ -16,7 +16,7 @@ const writeData = async (key, data, options) => {
         try{
             await redisClient.set(key, data, options)
         } catch(err) {
-            console.log(err)
+            logger.error
         }
     }
 }

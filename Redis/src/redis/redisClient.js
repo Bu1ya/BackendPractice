@@ -1,4 +1,5 @@
 const redis = require('redis')
+const { logger } = require('../common/utils/logger')
 
 let redisClient
 
@@ -7,17 +8,16 @@ const initializeRedisClient = async () => {
         url: process.env.REDIS_URL 
     })
     .on("connect", () => {
-        console.log("Connected to Redis successfully.")
+        logger.info("Connected to Redis successfully.")
     })
     .on("error", (err) => {
-        console.error(`Failed to create the Redis client with error:`)
-        console.error(err)
+        logger.error(`Failed to create the Redis client with error:`, err)
     })
 
     try{
         await redisClient.connect()
     } catch(err) {
-        console.log(err)
+        logger.error(err)
     }
 }
 

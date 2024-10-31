@@ -6,7 +6,9 @@ const { sanitizeInputMiddleware } = require('../middleware/sanitizeInputMiddlewa
 const { REQUEST_LIMITS } = require('../common/constants/constants.js')
 const authRoutes = require('../routes/authRoutes.js')
 const usersRoutes = require('../routes/usersRoutes.js')
-
+const activityRoutes = require('../routes/activityRoutes.js')
+const { logger } = require('../common/utils/logger.js')
+const morgan = require('morgan')
 
 const app = {
     appInstance: express(),
@@ -23,8 +25,29 @@ const app = {
         app.appInstance.use(sanitizeInputMiddleware)
         app.appInstance.use(limiter)
         
+        const morganFormat = ':method :url :status :response-time ms'
+
+        app.appInstance.use(
+            morgan(
+                morganFormat, {
+                stream: {
+                write: (message) => {
+                    const parts = message.trim().split(" ");
+                    const logObject = {
+                    method: parts[0],
+                    url: parts[1],
+                    status: parts[2],
+                    responseTime: parts[3],
+                    };
+                    logger.info(JSON.stringify(logObject));
+                },
+                },
+            })
+        )
+
         app.appInstance.use('/users', usersRoutes)
         app.appInstance.use('/auth', authRoutes)
+        app.appInstance.use('/gifts', activityRoutes)
     }
 }
 

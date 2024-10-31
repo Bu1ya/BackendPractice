@@ -1,5 +1,6 @@
-require('dotenv').config();
-const jwt = require('jsonwebtoken');
+require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const { logger } = require('../common/utils/logger.js')
 
 const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization');
@@ -10,9 +11,12 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decoded.userId;
+
+        logger.info(req.userId)
         next();
     } 
-    catch (error) {
+    catch (err) {
+        logger.error(err)
         res.status(401).json({ error: 'Invalid token' });
     }
 };

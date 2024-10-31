@@ -1,68 +1,70 @@
+const { logger } = require('../common/utils/logger');
+const pool = require('../db/pool');
 require('dotenv').config()
-const sqlite3 = require('sqlite3').verbose()
-
-let dbInstance
 
 const initDatabase = () => {
-    return new Promise((resolve, reject) => {
-        console.log(process.env.DB_PATH)
-        let db = new sqlite3.Database(process.env.DB_PATH, (err) => {
-            if (err) {
-                console.error(`Error connecting to the database: ${err.message}`)
-                return reject(err)
-            }
-            console.log('Connected to the database.')
+    return new Promise(async (resolve, reject) => {
+        try {
+            const client = await pool.connect();
 
-            db.run(`CREATE TABLE IF NOT EXISTS users (
-                userId INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
-                username TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL
-            )`, (err) => {
-                if (err) {
-                    return reject(err)
-                }
-            })
+            await client.query('BEGIN')
 
-            db.run(`CREATE TABLE IF NOT EXISTS users_profile (
-                userId INTEGER PRIMARY KEY,
-                firstName TEXT NOT NULL,
-                lastName TEXT,
-                age INTEGER,
-                cashAmount BIGINT NOT NULL
-            )`, (err) => {
-                if (err) {
-                    return reject(err)
-                }
-                resolve(db)
-            })
-        })
-    })
-}
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id SERIAL PRIMARY KEY,
+                    email TEXT NOT NULL UNIQUE,
+                    username TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL
+                )
+            `)
+
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS users_profiles (
+                    user_id INTEGER PRIMARY KEY,
+                    firstName TEXT NOT NULL,
+                    lastName TEXT,
+                    age INTEGER,
+                    cashAmount BIGINT NOT NULL,
+                    CONSTRAINT fk_user
+                        FOREIGN KEY(userId) 
+                        REFERENCES users(userId)
+                )
+            `)
+
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS bonuses (
+                    bonus_id SERIAL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    bonus_amount INT NOT NULL DEFAULT 100,
+                    is_paid bool NOT NULL DEFAULT false,
+                    scheduled_at TIMESTAMPTZ NOT NULL,
+                    paid_at TIMESTAMPTZ
+                )
+            `)
+
+            await client.query('COMMIT')
+
+            logger.info('Connected and initialized the database.');
+            client.release();
+            resolve(pool);
+        } catch (err) {
+            logger.error(`Error initializing database: ${err.message}`);
+            reject(err);
+        }
+    });
+};
+
 
 const dbController = {
-    getDbConnection: () => {
-        if (!dbInstance) {
-            dbInstance = new sqlite3.Database(process.env.DB_PATH, (err) => {
-                if (err) {
-                    console.error('Error opening database:', err.message)
-                } else {
-                    console.log('Connected to the SQLite database.')
-                }
-            })
+    getDbConnection: () => pool,
+    closeDbConnection: async () => {
+        try {
+            await pool.end();
+            logger.info('PostgreSQL pool has been closed.');
+        } catch (err) {
+            logger.error('Error closing the database pool:', err.message);
         }
-        return dbInstance
-    },
-
-    closeDbConnection: () => {
-        dbInstance?.close((err) => {
-            if (err) {
-                console.error(err.message)
-            }
-            console.log('Database closed.')
-            process.exit(0)
-        })
     }
-}
+};
 
 module.exports = { dbController, initDatabase }

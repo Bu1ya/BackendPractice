@@ -3,11 +3,12 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-const userProfileController = require('../controllers/userController.js')
+const userController = require('../controllers/userController.js')
 const checkValidationErrorsMiddleware = require('../middleware/checkValidationErrorsMiddleware.js')
 const { requestAuthRoutesValidator: requestValidator } = require('../middleware/routesValidationMiddleware.js')
 const { isEmail } = require('../common/utils/isEmail.js')
 const { clientSocketInfoMiddleware } = require('../middleware/clientSocketInfoMiddleware.js')
+const { logger } = require('../common/utils/logger.js')
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -20,27 +21,26 @@ router.post('/register',[
     checkValidationErrorsMiddleware,
     clientSocketInfoMiddleware
 ], async (req, res) =>{
-    const { email, username, password, firstName, lastName, age, cashAmount} = req.body
+    const { email, username, password, firstName, lastName, age, cashAmount } = req.body
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const userData = {
         email, 
         username, 
-        password: hashedPassword
-    }
-
-    const userProfileData = {
+        password: hashedPassword,
         firstName,
         lastName: lastName ? lastName : null,
         age: age ? age : null,
         cashAmount
     }
     
-    userProfileController.insertUser(userData, userProfileData)
+    userController.insertUser(userData)
     .then(() => {
+        logger.info('User registered')
         res.status(201).json({ message: 'User registered successfully.' })
     })
     .catch(err => {
+        logger.error(err)
         if (!res.headersSent) {
             return res.status(500).json({ error: 'Registration failed.', err })
         }
@@ -56,8 +56,8 @@ router.post('/login', [
     
     try{
         const userData = isEmail(username) 
-        ? await userProfileController.getUserByEmail(username) 
-        : await userProfileController.getUserByUsername(username)
+        ? await userController.getUserByEmail(username) 
+        : await userController.getUserByUsername(username)
 
         if(!userData){
             return res.status(404).json({ error: 'User not found.' })
@@ -67,13 +67,14 @@ router.post('/login', [
             return res.status(401).json({ error: 'Invalid credentials.' })
         }
 
-        const token = jwt.sign({ userId: userData.id, username: userData.username }, JWT_SECRET, {
+        const token = jwt.sign({ userId: userData.user_id, username: userData.username }, JWT_SECRET, {
             expiresIn: '1h'
         })
         
         res.status(200).json({ message: 'Login successful.', token })
 
     } catch(err){
+        logger.error(err)
         res.status(500).json({ error: 'Login failed.', err})
     }
 })

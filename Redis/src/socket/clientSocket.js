@@ -3,6 +3,7 @@ const { Server } = require('socket.io')
 const messageHandler = require('./socketHandlers/messageHandler')
 const disconnectHandler = require('./socketHandlers/disconnectHandler')
 const clientSocketAuthMiddleware = require('../middleware/clientSocketAuthMiddleware')
+const { logger } = require('../common/utils/logger')
 
 const clientSocket = {
     io: undefined,
@@ -26,10 +27,10 @@ const clientSocket = {
             clientSocket.adminRights = password ? password === process.env.ADMIN_SOCKET_PASSWORD : false
 
             if(!clientSocket.adminRights){
-                console.log('A user connected:', socket.handshake.address);
+                logger.info('A user connected:', socket.handshake.address);
             }
             else{
-                console.log('Admin connected:', socket.handshake.address)
+                logger.info('Admin connected:', socket.handshake.address)
             }
             
             messageHandler(socket);
